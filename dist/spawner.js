@@ -1,43 +1,43 @@
 var spawner = {
     run: function() {
-        // define the harvester's body
-        const harvesterBody = [WORK, CARRY, MOVE];
-
-        // define the upgrader's body
-        const upgraderBody = [WORK, CARRY, MOVE];
-
         // loop over all spawns
         for(const spawnName in Game.spawns) {
             // get the spawn object
             const spawn = Game.spawns[spawnName];
 
-            // get the sources in the room
-            const sources = spawn.room.find(FIND_SOURCES);
-
-            // get the harvesters in the room
-            const harvesters = _.filter(Game.creeps, (creep) => creep.memory.role == 'harvester');
-
-            // get the upgraders in the room
-            const upgraders = _.filter(Game.creeps, (creep) => creep.memory.role == 'upgrader');
-
-            // spawn a new harvester for each source if there isn't one already
-            if(harvesters.length < sources.length) {
-                const newName = 'Harvester' + Game.time;
-
-                console.log('Spawning new harvester: ' + newName);
-
-                spawn.spawnCreep(harvesterBody, newName,
-                    {memory: {role: 'harvester'}});
+            // check if we already have cached sources, if not, cache them
+            if(!spawn.memory.sources) {
+                spawn.memory.sources = spawn.room.find(FIND_SOURCES).map(source => source.id);
             }
 
-            // spawn a new upgrader if there are less than 2
-            else if(upgraders.length < 2) {
-                const newName = 'Upgrader' + Game.time;
+            // only create new harvesters if we have energy to spare
+            if(spawn.room.energyAvailable < spawn.room.energyCapacityAvailable) {
+                continue;
+            }
 
-                console.log('Spawning new upgrader: ' + newName);
+            // calculate the maximum number of parts we can afford
+            const maxParts = Math.floor((spawn.room.energyCapacityAvailable - 50) / 150);
 
-                spawn.spawnCreep(upgraderBody, newName,
-                    {memory: {role: 'upgrader'}});
+            // ensure the harvester's body does not exceed 50 parts
+            const parts = Math.min(maxParts, 16);  // 16*3 parts + 1 MOVE part = 49 parts
+
+            // create the harvester's body dynamically
+            const harvesterBody = Array(parts).fill([WORK, CARRY]).flat();
+            harvesterBody.unshift(MOVE);
+
+            // for each source, check if there is a harvester assigned to it
+            for (const sourceId of spawn.memory.sources) {
+                const harvesters = _.filter(Game.creeps, (creep) => creep.memory.role == 'harvester' && creep.memory.sourceId == sourceId);
+
+                // spawn a new harvester if there is not one already
+                if(harvesters.length === 0) {
+                    const newName = 'Harvester' + Game.time;
+
+                    console.log('Spawning new harvester: ' + newName);
+
+                    spawn.spawnCreep(harvesterBody, newName,
+                        {memory: {role: 'harvester', sourceId: sourceId}});
+                }
             }
         }
     }
