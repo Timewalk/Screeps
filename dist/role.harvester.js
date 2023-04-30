@@ -1,19 +1,9 @@
+const _ = require("lodash/fp");
+
 const roleHarvester = {
     spawnHarvester: function(spawn) {
-        const sources = spawn.room.find(FIND_SOURCES); // get all the sources in the room
-
-        // Build the harvester body array with the specified number of parts
-        let harvesterParts = [CARRY];
-        const workparts = [WORK, MOVE];
-        let energyCapacity = spawn.room.energyCapacityAvailable - BODYPART_COST[CARRY];
-
-        while (energyCapacity >= (BODYPART_COST[WORK] + BODYPART_COST[MOVE])) {
-            harvesterParts.push(...workparts);
-            energyCapacity -= (BODYPART_COST[WORK] + BODYPART_COST[MOVE]);
-        }
-
-        console.log(`Harvester parts: ${harvesterParts}`);
-
+        // get all the sources in the room
+        const sources = spawn.room.find(FIND_SOURCES);
         // get all the harvesters in the room
         const harvesters = _.filter(Game.creeps, (creep) => creep.memory.role == 'harvester');
 
@@ -21,6 +11,15 @@ const roleHarvester = {
         sources.forEach(source => {
             const assignedHarvester = _.find(harvesters, (harvester) => harvester.memory.sourceId == source.id);
             if (!assignedHarvester) {
+                // Build the harvester body array with the specified number of parts
+                let harvesterParts = [].push([CARRY]);
+                let energyCapacity = spawn.room.energyCapacityAvailable - BODYPART_COST[CARRY];
+
+                while (energyCapacity >= (BODYPART_COST[WORK] + BODYPART_COST[MOVE])) {
+                    harvesterParts.push([WORK, MOVE]);
+                    energyCapacity -= (BODYPART_COST[WORK] + BODYPART_COST[MOVE]);
+                }
+
                 const newName = 'Harvester' + Game.time;
                 console.log(`Spawning new harvester ${newName} for source ${source.id}`);
 

@@ -15,6 +15,7 @@
   "license": "ISC",
   "dependencies": {
     "@types/lodash": "^4.14.194",
-    "@types/screeps": "^3.3.2"
+    "@types/screeps": "^3.3.2",
+    "lodash": "^4.17.21"
   }
 }
