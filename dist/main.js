@@ -1,17 +1,20 @@
-var roleHarvester = require('role.harvester');
-var roleUpgrader = require('role.upgrader');
-var spawner = require('spawner');
+const roleHarvester = require('role.harvester');
+const roleUpgrader = require('role.upgrader');
+const roleDefender = require('role.defender');
+const spawner = require('spawner');
 
 module.exports.loop = function () {
     spawner.run();
 
-    for(var name in Game.creeps) {
-        var creep = Game.creeps[name];
-        if(creep.memory.role == 'harvester') {
+    for (const name in Game.creeps) {
+        const creep = Game.creeps[name];
+        const role = creep.memory.role;
+        if (role == 'harvester') {
             roleHarvester.run(creep);
-        }
-        if(creep.memory.role == 'upgrader') {
+        } else if (role == 'upgrader') {
             roleUpgrader.run(creep);
+        } else if (role == 'defender') {
+            roleDefender.run(creep);
         }
     }
 }
